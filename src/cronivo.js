@@ -13,10 +13,10 @@ function setInterval(func, schedule, jobName) {
     redisLock(`${jobName}Lock`, (done) => {
       // Gets the job next execution saved on redis
       redisClient.get(jobName, (err, reply) => {
-        // If the next execution is null or different from the current next, then this job must
+        // If the next execution is null or greater then the current next, then this job must
         // execute, else, it was already executed
         const nextExecution = moment(schedule.next(1)[0]).valueOf();
-        if(_.isNil(reply) || reply.toString() !== nextExecution) {
+        if(_.isNil(reply) || reply.toString() < nextExecution) {
           // Sets the next execution time on redis so other jobs wont run
           redisClient.set(jobName, nextExecution, () => {
             // Releases the lock since it is no longer required

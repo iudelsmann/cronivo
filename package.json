@@ -12,5 +12,20 @@
     "Job"
   ],
   "author": "Ivo Udelsmann iudelsmann@gmail.com",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "later": "^1.2.0",
+    "lodash": "^4.17.2",
+    "moment": "^2.17.0",
+    "redis-lock": "^0.1.0"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iudelsmann/cronivo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iudelsmann/cronivo/issues"
+  },
+  "homepage": "https://github.com/iudelsmann/cronivo#readme"
 }

@@ -34,7 +34,7 @@ function setInterval(func, schedule, jobName) {
 
 function setUp(redisClient) {
   // Uses the provided client to configure redisLock
-  redisLock = require('redisLock')(redisClient);
+  redisLock = require('redis-lock')(redisClient);
   // Returns available methods
   return { setInterval };
 }

@@ -1,0 +1,16 @@
+{
+  "name": "cronivo",
+  "version": "0.0.1",
+  "description": "Synced job scheduler using later and Redis",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Redis",
+    "Cron",
+    "Job"
+  ],
+  "author": "Ivo Udelsmann iudelsmann@gmail.com",
+  "license": "MIT"
+}

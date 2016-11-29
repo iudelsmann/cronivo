@@ -1,6 +1,6 @@
 {
   "name": "cronivo",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Synced job scheduler using later and Redis",
   "main": "index.js",
   "scripts": {

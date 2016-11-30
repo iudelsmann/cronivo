@@ -1,0 +1,33 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true,
+    "jasmine": true,
+    "jquery": true,
+    "node": true
+  },
+  "extends": [
+    "airbnb-base"
+  ],
+  "rules": {
+    "linebreak-style": 0,
+    "strict": 0,
+    "no-new": 0,
+    # Change to use glob to exclude only test files. Should be available in version 1.15 of eslint-plugin-import
+    "import/no-extraneous-dependencies": ["error", {"devDependencies": true}],
+    # Allow plusplus on for loops
+    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
+    # Allow i18n.__
+    "no-underscore-dangle": ["error", { "allow": ["__"] }],
+    # Disable spread related rules (ES6 only)
+    "prefer-rest-params": 0,
+    "prefer-spread": 0,
+    # Validates JSDocs
+    "valid-jsdoc": ["error", {
+      "requireReturn": false,
+      "prefer": {
+        "returns": "return"
+      }
+    }]
+  }
+}

@@ -18,7 +18,6 @@ describe('cronivo:', () => {
     redisLockMethod = jasmine.createSpy('redisLockMethod').and.callFake((lockName, cb) => cb(freeLock));
     redisLock = jasmine.createSpy('redisLock').and.returnValue(redisLockMethod);
 
-    // redisClient.get = jasmine.createSpy('get').and.callFake((jobName, cb) => cb(null, 1480508046336));
     redisClient.set = jasmine.createSpy('set').and.callFake((jobName, value, cb) => cb());
 
     spyOn(later, 'setInterval').and.callFake(func => func());

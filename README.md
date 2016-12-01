@@ -11,21 +11,31 @@ npm install cronivo
 ## Usage
 Cronivo is very simple to use, it is complementary to later, requiring later to be used to create schedules, and redis to create clients.
 
+It has only two methods, **_setInterval_** and **_setTimeout_**, both used in the same way:
+
 ```js
-const redisCient = require('redis').createClient();
-const cronivo = require('cronivo')(redisClient);
+const redis = require('redis');
+const Cronivo = require('cronivo');
 const later = require('later');
+
+const redisClient = redis.createClient();
+const cronivo = new Cronivo(redisClient);
 
 // Create a schedule any way you like using later
 const schedule = later.parse.recur().every(5).second();
 
-// Schedule execution, use a unique job name for each job
+// Schedule repeated execution
 cronivo.setInterval(myFunc, schedule, 'job1');
+
+// Schedule single execution
+cronivo.setTimeout(myFunc, schedule, 'job2')
 
 function myFunc() {
     console.log('I was executed only once')
 }
 ```
+
+**The job name must be unique, since it will be used as a key in redis. If you are changing a job's schedule you might need to erase it's data from redis to avoid wrong execution**
 
 # License
 (The MIT License)

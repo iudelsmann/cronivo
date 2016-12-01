@@ -3,9 +3,6 @@
 const _ = require('lodash');
 const later = require('later');
 
-let redisClient;
-let redisLock;
-
 /**
  * Executes the action for either setInterval or setTimeout, using lock and redis to synchronize
  * execution.
@@ -17,9 +14,9 @@ let redisLock;
  */
 function executeAction(action, schedule, jobName) {
   // Locks so other jobs wait before executing
-  redisLock(`${jobName}Lock`, (done) => {
+  this.redisLock(`${jobName}Lock`, (done) => {
     // Gets the job next execution saved on redis
-    redisClient.get(jobName, (err, reply) => {
+    this.redisClient.get(jobName, (err, reply) => {
       // If the next execution (saved on redis) is null or greater than now, then this job must
       // execute, else, it was already executed
       const nextExecution = later.schedule(schedule).next(1);
@@ -27,7 +24,7 @@ function executeAction(action, schedule, jobName) {
       nextExecution.setMilliseconds(0);
       if (_.isNil(reply) || reply.toString() < nextExecution.getTime()) {
         // Sets the next execution time on redis so other jobs wont run
-        redisClient.set(jobName, nextExecution.getTime(), () => {
+        this.redisClient.set(jobName, nextExecution.getTime(), () => {
           // Releases the lock since it is no longer required
           done();
           // Calls the method passed by the user
@@ -40,8 +37,22 @@ function executeAction(action, schedule, jobName) {
   });
 }
 
-// Public methods
-const api = {
+/**
+ * Class to schedule synchronized jobs.
+ */
+class Cronivo {
+  /**
+   * Sets up the class, saving the redis client and using it to startup redisLock.
+   *
+   * @param {RedisClient} client A redis client connected to a redis instance where the jobs data
+   *                             will be saved
+   */
+  constructor(client) {
+    this.redisClient = client;
+    // Uses the provided client to configure redisLock
+    this.redisLock = require('redis-lock')(this.redisClient);  // eslint-disable-line global-require
+  }
+
   /**
    * Executes the provided function repeatedely in the provided schedule. Uses the job name as a key
    * on redis, therefore it must be unique.
@@ -51,10 +62,8 @@ const api = {
    * @param  {string}         jobName  The name of the job to be executed
    */
   setInterval(action, schedule, jobName) {
-    // Uses later setInterval method to schedule the job, with some extra instructions to ensure
-    // synced execution
-    later.setInterval(() => executeAction(action, schedule, jobName), schedule);
-  },
+    later.setInterval(() => executeAction.bind(this)(action, schedule, jobName), schedule);
+  }
 
   /**
    * Executes the provided function once in the provided schedule. Uses the job name as a key on
@@ -65,26 +74,9 @@ const api = {
    * @param  {string}         jobName  The name of the job to be executed
    */
   setTimeout(action, schedule, jobName) {
-    // Uses later setInterval method to schedule the job, with some extra instructions to ensure
-    // synced execution
-    later.setTimeout(() => executeAction(action, schedule, jobName), schedule);
-  },
-};
-
-/**
- * Sets up the module, saving the redis client and using it to startup redisLock.
- *
- * @param {RedisClient} client A redis client connected to a redis instance where the jobs data will
- *                             be saved
- * @return {Object}            The public methods available to schedule jobs
- */
-function setUp(client) {
-  redisClient = client;
-  // Uses the provided client to configure redisLock
-  redisLock = require('redis-lock')(redisClient);  // eslint-disable-line global-require
-  // Returns available methods
-  return api;
+    later.setTimeout(() => executeAction.bind(this)(action, schedule, jobName), schedule);
+  }
 }
 
 
-module.exports = setUp;
+module.exports = Cronivo;

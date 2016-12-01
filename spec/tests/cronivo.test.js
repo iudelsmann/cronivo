@@ -6,7 +6,7 @@ const later = require('later');
 describe('cronivo:', () => {
   const redisClient = {};
 
-  let cronivo;
+  let Cronivo;
   let redisLock;
   let redisLockMethod;
   let freeLock;
@@ -23,7 +23,7 @@ describe('cronivo:', () => {
     spyOn(later, 'setInterval').and.callFake(func => func());
     spyOn(later, 'setTimeout').and.callFake(func => func());
 
-    cronivo = proxyquire('../../src/cronivo', {
+    Cronivo = proxyquire('../../src/cronivo', {
       'redis-lock': redisLock,
       later,
     });
@@ -36,22 +36,23 @@ describe('cronivo:', () => {
     jasmine.clock().uninstall();
   });
 
-  describe('setUp:', () => {
+  describe('constructor:', () => {
     it('should initialize redisLock and return the public api', () => {
       const argument = 'redisClient';
-      const result = cronivo(argument);
+      const instance = new Cronivo(argument);
       expect(redisLock).toHaveBeenCalledWith(argument);
-      expect(result.setInterval).toBeDefined();
+      expect(instance.redisLock).toBeDefined();
+      expect(instance.redisClient).toBeDefined();
     });
   });
 
   describe('setInterval:', () => {
-    let setInterval;
+    let cronivo;
     let schedule;
     let action;
 
     beforeEach(() => {
-      setInterval = cronivo(redisClient).setInterval;
+      cronivo = new Cronivo(redisClient);
       schedule = later.parse.recur().every(5).second();
       action = jasmine.createSpy('action');
     });
@@ -60,7 +61,7 @@ describe('cronivo:', () => {
       redisClient.get = jasmine.createSpy('get').and.callFake((jobName, cb) => cb(null, null));
 
       const jobName = 'jobName';
-      setInterval(action, schedule, jobName);
+      cronivo.setInterval(action, schedule, jobName);
 
       expect(later.setInterval).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
@@ -75,7 +76,7 @@ describe('cronivo:', () => {
       redisClient.get = jasmine.createSpy('get').and.callFake((jobName, cb) => cb(null, basetime.getTime() - 4000));
 
       const jobName = 'jobName';
-      setInterval(action, schedule, jobName);
+      cronivo.setInterval(action, schedule, jobName);
 
       expect(later.setInterval).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
@@ -90,7 +91,7 @@ describe('cronivo:', () => {
       redisClient.get = jasmine.createSpy('get').and.callFake((jobName, cb) => cb(null, basetime.getTime() + 1000));
 
       const jobName = 'jobName';
-      setInterval(action, schedule, jobName);
+      cronivo.setInterval(action, schedule, jobName);
 
       expect(later.setInterval).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
@@ -102,12 +103,12 @@ describe('cronivo:', () => {
   });
 
   describe('setTimeout:', () => {
-    let setTimeout;
+    let cronivo;
     let schedule;
     let action;
 
     beforeEach(() => {
-      setTimeout = cronivo(redisClient).setTimeout;
+      cronivo = new Cronivo(redisClient);
       schedule = later.parse.recur().every(5).second();
       action = jasmine.createSpy('action');
     });
@@ -116,7 +117,7 @@ describe('cronivo:', () => {
       redisClient.get = jasmine.createSpy('get').and.callFake((jobName, cb) => cb(null, null));
 
       const jobName = 'jobName';
-      setTimeout(action, schedule, jobName);
+      cronivo.setTimeout(action, schedule, jobName);
 
       expect(later.setTimeout).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
@@ -131,7 +132,7 @@ describe('cronivo:', () => {
       redisClient.get = jasmine.createSpy('get').and.callFake((jobName, cb) => cb(null, basetime.getTime() - 4000));
 
       const jobName = 'jobName';
-      setTimeout(action, schedule, jobName);
+      cronivo.setTimeout(action, schedule, jobName);
 
       expect(later.setTimeout).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
@@ -146,7 +147,7 @@ describe('cronivo:', () => {
       redisClient.get = jasmine.createSpy('get').and.callFake((jobName, cb) => cb(null, basetime.getTime() + 1000));
 
       const jobName = 'jobName';
-      setTimeout(action, schedule, jobName);
+      cronivo.setTimeout(action, schedule, jobName);
 
       expect(later.setTimeout).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));

@@ -71,9 +71,12 @@ class Cronivo {
    * @param  {string}         jobName  The name of the job to be executed
    */
   addJob(action, schedule, jobName) {
-    this.jobs[jobName] = later.setInterval(() => {
+    // Save the job timer so it can be cancelled
+    _.set(this.jobs, `${jobName}.timer`, later.setInterval(() => {
       executeAction.bind(this)(action, schedule, jobName);
-    }, schedule);
+    }, schedule));
+    // Save the method action so it can be ran manually
+    this.jobs[jobName].action = action;
   }
 
   /**
@@ -84,10 +87,13 @@ class Cronivo {
    * @param  {schedule}       schedule A later schedule for the action
    * @param  {string}         jobName  The name of the job to be executed
    */
-  addSingleJob(action, schedule, jobName) {
-    this.jobs[jobName] = later.setTimeout(() => {
+  addSingleExecutionJob(action, schedule, jobName) {
+    // Save the job timer so it can be cancelled
+    _.set(this.jobs, `${jobName}.timer`, later.setTimeout(() => {
       executeAction.bind(this)(action, schedule, jobName);
-    }, schedule);
+    }, schedule));
+    // Save the method action so it can be ran manually
+    this.jobs[jobName].action = action;
   }
 
   /**
@@ -97,11 +103,22 @@ class Cronivo {
    */
   cancelJob(jobName) {
     if (this.jobs[jobName]) {
-      this.jobs[jobName].clear();
+      this.jobs[jobName].timer.clear();
       delete this.jobs[jobName];
       this.redisLock(`${jobName}Lock`, (done) => {
         this.redisClient.del(jobName, () => done());
       });
+    }
+  }
+
+  /**
+   * Runs the given job, if it exists, imediately, without affecting the schedule.
+   *
+   * @param  {string} jobName The name of the job to be executed
+   */
+  runJob(jobName) {
+    if (this.jobs[jobName]) {
+      this.jobs[jobName].action();
     }
   }
 }

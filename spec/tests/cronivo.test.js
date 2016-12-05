@@ -73,7 +73,8 @@ describe('cronivo:', () => {
         jasmine.any(Function));
       expect(freeLock).toHaveBeenCalled();
       expect(action).toHaveBeenCalled();
-      expect(cronivo.jobs[jobName]).toBeDefined();
+      expect(cronivo.jobs[jobName].timer).toBeDefined();
+      expect(cronivo.jobs[jobName].action).toBeDefined();
     });
 
     it('should call the function if the database value was earlier than now', () => {
@@ -89,7 +90,8 @@ describe('cronivo:', () => {
         jasmine.any(Function));
       expect(freeLock).toHaveBeenCalled();
       expect(action).toHaveBeenCalled();
-      expect(cronivo.jobs[jobName]).toBeDefined();
+      expect(cronivo.jobs[jobName].timer).toBeDefined();
+      expect(cronivo.jobs[jobName].action).toBeDefined();
     });
 
     it('should not call the function if the database value is greater than now', () => {
@@ -104,11 +106,12 @@ describe('cronivo:', () => {
       expect(redisClient.set).not.toHaveBeenCalled();
       expect(freeLock).toHaveBeenCalled();
       expect(action).not.toHaveBeenCalled();
-      expect(cronivo.jobs[jobName]).toBeDefined();
+      expect(cronivo.jobs[jobName].timer).toBeDefined();
+      expect(cronivo.jobs[jobName].action).toBeDefined();
     });
   });
 
-  describe('addSingleJob:', () => {
+  describe('addSingleExecutionJob:', () => {
     let schedule;
     let action;
 
@@ -121,7 +124,7 @@ describe('cronivo:', () => {
       redisClient.get = jasmine.createSpy('get').and.callFake((jobName, cb) => cb(null, null));
 
       const jobName = 'jobName';
-      cronivo.addSingleJob(action, schedule, jobName);
+      cronivo.addSingleExecutionJob(action, schedule, jobName);
 
       expect(later.setTimeout).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
@@ -130,14 +133,15 @@ describe('cronivo:', () => {
         jasmine.any(Function));
       expect(freeLock).toHaveBeenCalled();
       expect(action).toHaveBeenCalled();
-      expect(cronivo.jobs[jobName]).toBeDefined();
+      expect(cronivo.jobs[jobName].timer).toBeDefined();
+      expect(cronivo.jobs[jobName].action).toBeDefined();
     });
 
     it('should call the function if the database value was earlier than now', () => {
       redisClient.get = jasmine.createSpy('get').and.callFake((jobName, cb) => cb(null, basetime.getTime() - 4000));
 
       const jobName = 'jobName';
-      cronivo.addSingleJob(action, schedule, jobName);
+      cronivo.addSingleExecutionJob(action, schedule, jobName);
 
       expect(later.setTimeout).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
@@ -146,14 +150,15 @@ describe('cronivo:', () => {
         jasmine.any(Function));
       expect(freeLock).toHaveBeenCalled();
       expect(action).toHaveBeenCalled();
-      expect(cronivo.jobs[jobName]).toBeDefined();
+      expect(cronivo.jobs[jobName].timer).toBeDefined();
+      expect(cronivo.jobs[jobName].action).toBeDefined();
     });
 
     it('should not call the function if the database value is greater than now', () => {
       redisClient.get = jasmine.createSpy('get').and.callFake((jobName, cb) => cb(null, basetime.getTime() + 1000));
 
       const jobName = 'jobName';
-      cronivo.addSingleJob(action, schedule, jobName);
+      cronivo.addSingleExecutionJob(action, schedule, jobName);
 
       expect(later.setTimeout).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
@@ -161,7 +166,8 @@ describe('cronivo:', () => {
       expect(redisClient.set).not.toHaveBeenCalled();
       expect(freeLock).toHaveBeenCalled();
       expect(action).not.toHaveBeenCalled();
-      expect(cronivo.jobs[jobName]).toBeDefined();
+      expect(cronivo.jobs[jobName].timer).toBeDefined();
+      expect(cronivo.jobs[jobName].action).toBeDefined();
     });
   });
 
@@ -169,23 +175,41 @@ describe('cronivo:', () => {
     it('should erase job from jobs list and redis', () => {
       const jobName = 'jobName';
       const mockJob = {
-        clear: jasmine.createSpy('clear'),
+        timer: {
+          clear: jasmine.createSpy('clear'),
+        },
       };
       cronivo.jobs[jobName] = mockJob;
       cronivo.cancelJob(jobName);
-      expect(mockJob.clear).toHaveBeenCalled();
+      expect(mockJob.timer.clear).toHaveBeenCalled();
       expect(cronivo.jobs[jobName]).not.toBeDefined();
       expect(redisClient.del).toHaveBeenCalledWith(jobName, jasmine.any(Function));
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
       expect(freeLock).toHaveBeenCalled();
     });
 
-    it('should  not throw error for unexistent jobs', () => {
+    it('should not throw error for unexistent jobs', () => {
       const jobName = 'jobName';
       cronivo.cancelJob(jobName);
       expect(redisClient.del).not.toHaveBeenCalled();
       expect(redisLockMethod).not.toHaveBeenCalled();
       expect(freeLock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('runJob:', () => {
+    it('should execute the jobs action', () => {
+      const jobName = 'jobName';
+      const mockJob = {
+        action: jasmine.createSpy('action'),
+      };
+      cronivo.jobs[jobName] = mockJob;
+      cronivo.runJob(jobName);
+      expect(mockJob.action).toHaveBeenCalled();
+    });
+
+    it('should not throw error for unexistent jobs', () => {
+      cronivo.runJob('jobName');
     });
   });
 });

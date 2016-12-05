@@ -58,6 +58,8 @@ class Cronivo {
     this.redisClient = client;
     // Uses the provided client to configure redisLock
     this.redisLock = require('redis-lock')(this.redisClient);  // eslint-disable-line global-require
+    // Initialize jobs list
+    this.jobs = {};
   }
 
   /**
@@ -68,8 +70,10 @@ class Cronivo {
    * @param  {schedule}       schedule A later schedule for the action
    * @param  {string}         jobName  The name of the job to be executed
    */
-  setInterval(action, schedule, jobName) {
-    later.setInterval(() => executeAction.bind(this)(action, schedule, jobName), schedule);
+  addJob(action, schedule, jobName) {
+    this.jobs[jobName] = later.setInterval(() => {
+      executeAction.bind(this)(action, schedule, jobName);
+    }, schedule);
   }
 
   /**
@@ -80,8 +84,25 @@ class Cronivo {
    * @param  {schedule}       schedule A later schedule for the action
    * @param  {string}         jobName  The name of the job to be executed
    */
-  setTimeout(action, schedule, jobName) {
-    later.setTimeout(() => executeAction.bind(this)(action, schedule, jobName), schedule);
+  addSingleJob(action, schedule, jobName) {
+    this.jobs[jobName] = later.setTimeout(() => {
+      executeAction.bind(this)(action, schedule, jobName);
+    }, schedule);
+  }
+
+  /**
+   * Cancels a jobs execution, clearing all data about it.
+   *
+   * @param  {string} jobName The name of the job to be cancelled.
+   */
+  cancelJob(jobName) {
+    if (this.jobs[jobName]) {
+      this.jobs[jobName].clear();
+      delete this.jobs[jobName];
+      this.redisLock(`${jobName}Lock`, (done) => {
+        this.redisClient.del(jobName, () => done());
+      });
+    }
   }
 }
 

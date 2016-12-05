@@ -10,14 +10,18 @@
   "keywords": [
     "Redis",
     "Cron",
-    "Job"
+    "Job",
+    "cron",
+    "job",
+    "redis"
   ],
   "author": "Ivo Udelsmann iudelsmann@gmail.com",
   "license": "MIT",
   "dependencies": {
     "later": "^1.2.0",
     "lodash": "^4.17.2",
-    "redis-lock": "^0.1.0"
+    "redis-lock": "^0.1.0",
+    "winston": "^2.3.0"
   },
   "devDependencies": {
     "eslint": "^3.11.1",

@@ -2,6 +2,8 @@
 
 const _ = require('lodash');
 const later = require('later');
+const logger = require('winston');
+
 
 /**
  * Executes the action for either setInterval or setTimeout, using lock and redis to synchronize
@@ -35,7 +37,11 @@ function executeAction(action, schedule, jobName) {
           // Releases the lock since it is no longer required
           done();
           // Calls the method passed by the user
-          action();
+          try {
+            action();
+          } catch (error) {
+            this.logger.error(error);
+          }
         });
       } else {
         done();
@@ -51,15 +57,18 @@ class Cronivo {
   /**
    * Sets up the class, saving the redis client and using it to startup redisLock.
    *
-   * @param {RedisClient} client A redis client connected to a redis instance where the jobs data
-   *                             will be saved
+   * @param {RedisClient} client       A redis client connected to a redis instance where the jobs
+   *                                   data will be saved
+   * @param {Logger}      [userLogger] A user provided logger to be used to log errors
    */
-  constructor(client) {
+  constructor(client, userLogger) {
     this.redisClient = client;
     // Uses the provided client to configure redisLock
     this.redisLock = require('redis-lock')(this.redisClient);  // eslint-disable-line global-require
     // Initialize jobs list
     this.jobs = {};
+    // Use provided logger or default
+    this.logger = userLogger || logger;
   }
 
   /**
@@ -72,9 +81,11 @@ class Cronivo {
    */
   addJob(action, schedule, jobName) {
     // Save the job timer so it can be cancelled
-    _.set(this.jobs, `${jobName}.timer`, later.setInterval(() => {
+    const timer = later.setInterval(() => {
       executeAction.bind(this)(action, schedule, jobName);
-    }, schedule));
+    }, schedule);
+    _.set(this.jobs, `${jobName}.timer`, timer);
+
     // Save the method action so it can be ran manually
     this.jobs[jobName].action = action;
   }

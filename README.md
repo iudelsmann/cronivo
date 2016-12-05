@@ -5,13 +5,15 @@ Used to synchronize scheduled job executions in cluster or multiprocess.
 ## Installation
 Use npm to download and install.
 ```bash
-npm install cronivo
+npm install cronivo --save
 ```
 
 ## Usage
 Cronivo is very simple to use, it is complementary to later, requiring later to be used to create schedules, and redis to create clients.
 
-It has only two methods, **_setInterval_** and **_setTimeout_**, both used in the same way:
+### Scheduling jobs
+
+To create recurring jobs use:
 
 ```js
 const redis = require('redis');
@@ -24,11 +26,29 @@ const cronivo = new Cronivo(redisClient);
 // Create a schedule any way you like using later
 const schedule = later.parse.recur().every(5).second();
 
-// Schedule repeated execution
-cronivo.setInterval(myFunc, schedule, 'job1');
+// Schedule recurring execution
+cronivo.addJob(myFunc, schedule, 'job1');
+
+function myFunc() {
+    console.log('I was executed only once')
+}
+```
+
+To create a single execution job, use:
+
+```js
+const redis = require('redis');
+const Cronivo = require('cronivo');
+const later = require('later');
+
+const redisClient = redis.createClient();
+const cronivo = new Cronivo(redisClient);
+
+// Create a schedule any way you like using later
+const schedule = later.parse.recur().every(5).second();
 
 // Schedule single execution
-cronivo.setTimeout(myFunc, schedule, 'job2')
+cronivo.addSingleExecutionJob(myFunc, schedule, 'job1');
 
 function myFunc() {
     console.log('I was executed only once')
@@ -36,6 +56,25 @@ function myFunc() {
 ```
 
 **The job name must be unique, since it will be used as a key in redis. If you are changing a job's schedule you might need to erase it's data from redis to avoid wrong execution**
+
+### Cancelling jobs
+
+To cancel jobs simply use:
+
+```js
+cronivo.cancelJob('job1')
+```
+
+This will avoid new executions and erase all data that was stored in redis. If the job does not exists, it will not throw an error, nor erase any data from redis
+
+### Forcing execution
+
+You can also execute a job immeditely, which will not affect the scheduled instances:
+
+```js
+cronivo.runJob('job1');
+```
+
 
 # License
 (The MIT License)

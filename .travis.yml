@@ -3,3 +3,12 @@ node_js:
   - 6.7
 before_install:
   - npm install -g jasmine
+  - npm install -g eslint
+  - npm install -g istanbul
+script:
+  - npm test
+  - npm run lint
+  - npm run coverage
+  - npm run coverage-check
+after_success:
+  - npm run coverage-report

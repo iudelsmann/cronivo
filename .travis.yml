@@ -3,4 +3,3 @@ node_js:
   - 6.7
 before_install:
   - npm install -g jasmine
-  - npm install

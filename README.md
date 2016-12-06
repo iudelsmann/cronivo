@@ -1,6 +1,6 @@
 # Cronivo
-[![Build Status](https://travis-ci.org/iudelsmann/cronivo.svg)](https://travis-ci.org/iudelsmann/cronivo)
-[![Coverage Status](https://coveralls.io/repos/github/iudelsmann/cronivo/badge.svg)](https://coveralls.io/github/iudelsmann/cronivo)
+[![Build Status](https://travis-ci.org/iudelsmann/cronivo.svg?branch=master)](https://travis-ci.org/iudelsmann/cronivo)
+[![Coverage Status](https://coveralls.io/repos/github/iudelsmann/cronivo/badge.svg?branch=master)](https://coveralls.io/github/iudelsmann/cronivo)
 
 Synced job scheduler for node using [later](https://bunkat.github.io/later/) and [Redis](http://redis.js.org/).
 Used to synchronize scheduled job executions in cluster or multiprocess.
@@ -78,6 +78,20 @@ You can also execute a job immeditely, which will not affect the scheduled insta
 cronivo.runJob('job1');
 ```
 
+## Logging
+
+Cronivo logs job errors to the console by default, you can provide a custom logger through the constructor:
+
+```js
+const redis = require('redis');
+const Cronivo = require('cronivo');
+
+// Custom logger, could be any other that implements info error debug
+const logger = require('winston');
+
+const redisClient = redis.createClient();
+const cronivo = new Cronivo(redisClient, logger);
+```
 
 # License
 (The MIT License)

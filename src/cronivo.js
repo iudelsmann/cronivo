@@ -28,7 +28,7 @@ function executeAction(action, schedule, jobName) {
 
       const now = new Date().getTime();
 
-      const nextExecution = now > nextExecutions[0].getTime()
+      const nextExecution = now >= nextExecutions[0].getTime()
         ? nextExecutions[1] : nextExecutions[0];
 
       if (_.isNil(reply) || reply.toString() < now) {

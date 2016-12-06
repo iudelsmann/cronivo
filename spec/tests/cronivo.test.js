@@ -13,7 +13,7 @@ describe('cronivo:', () => {
   let freeLock;
   let logger;
 
-  const basetime = new Date('2000-01-01 00:00:04');
+  const basetime = new Date('2000-01-01 00:00:00');
 
   beforeEach(() => {
     freeLock = jasmine.createSpy('freeLock');
@@ -75,7 +75,7 @@ describe('cronivo:', () => {
       expect(later.setInterval).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
       expect(redisClient.get).toHaveBeenCalledWith(jobName, jasmine.any(Function));
-      expect(redisClient.set).toHaveBeenCalledWith(jobName, basetime.getTime() + 1000,
+      expect(redisClient.set).toHaveBeenCalledWith(jobName, basetime.getTime() + 5000,
         jasmine.any(Function));
       expect(freeLock).toHaveBeenCalled();
       expect(action).toHaveBeenCalled();
@@ -92,7 +92,7 @@ describe('cronivo:', () => {
       expect(later.setInterval).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
       expect(redisClient.get).toHaveBeenCalledWith(jobName, jasmine.any(Function));
-      expect(redisClient.set).toHaveBeenCalledWith(jobName, basetime.getTime() + 1000,
+      expect(redisClient.set).toHaveBeenCalledWith(jobName, basetime.getTime() + 5000,
         jasmine.any(Function));
       expect(freeLock).toHaveBeenCalled();
       expect(action).toHaveBeenCalled();
@@ -127,13 +127,34 @@ describe('cronivo:', () => {
       expect(later.setInterval).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
       expect(redisClient.get).toHaveBeenCalledWith(jobName, jasmine.any(Function));
-      expect(redisClient.set).toHaveBeenCalledWith(jobName, basetime.getTime() + 1000,
+      expect(redisClient.set).toHaveBeenCalledWith(jobName, basetime.getTime() + 5000,
         jasmine.any(Function));
       expect(freeLock).toHaveBeenCalled();
       expect(action).toHaveBeenCalled();
       expect(cronivo.jobs[jobName].timer).toBeDefined();
       expect(cronivo.jobs[jobName].action).toBeDefined();
       expect(logger.error).toHaveBeenCalledWith(error);
+    });
+
+    it('should save the correct next execution if the job was late', () => {
+      const lateDate = new Date(basetime.getTime());
+      lateDate.setSeconds(2);
+      jasmine.clock().mockDate(lateDate);
+
+      redisClient.get = jasmine.createSpy('get').and.callFake((jobName, cb) => cb(null, null));
+
+      const jobName = 'jobName';
+      cronivo.addJob(action, schedule, jobName);
+
+      expect(later.setInterval).toHaveBeenCalled();
+      expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
+      expect(redisClient.get).toHaveBeenCalledWith(jobName, jasmine.any(Function));
+      expect(redisClient.set).toHaveBeenCalledWith(jobName, basetime.getTime() + 5000,
+        jasmine.any(Function));
+      expect(freeLock).toHaveBeenCalled();
+      expect(action).toHaveBeenCalled();
+      expect(cronivo.jobs[jobName].timer).toBeDefined();
+      expect(cronivo.jobs[jobName].action).toBeDefined();
     });
   });
 
@@ -155,7 +176,7 @@ describe('cronivo:', () => {
       expect(later.setTimeout).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
       expect(redisClient.get).toHaveBeenCalledWith(jobName, jasmine.any(Function));
-      expect(redisClient.set).toHaveBeenCalledWith(jobName, basetime.getTime() + 1000,
+      expect(redisClient.set).toHaveBeenCalledWith(jobName, basetime.getTime() + 5000,
         jasmine.any(Function));
       expect(freeLock).toHaveBeenCalled();
       expect(action).toHaveBeenCalled();
@@ -172,7 +193,7 @@ describe('cronivo:', () => {
       expect(later.setTimeout).toHaveBeenCalled();
       expect(redisLockMethod).toHaveBeenCalledWith(`${jobName}Lock`, jasmine.any(Function));
       expect(redisClient.get).toHaveBeenCalledWith(jobName, jasmine.any(Function));
-      expect(redisClient.set).toHaveBeenCalledWith(jobName, basetime.getTime() + 1000,
+      expect(redisClient.set).toHaveBeenCalledWith(jobName, basetime.getTime() + 5000,
         jasmine.any(Function));
       expect(freeLock).toHaveBeenCalled();
       expect(action).toHaveBeenCalled();

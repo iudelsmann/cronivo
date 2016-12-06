@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "jasmine",
-    "coverage": "istanbul cover node_modules/jasmine/bin/jasmine.js"
+    "lint": "eslint index.js src/**/*.js spec/**/*.js",
+    "coverage": "istanbul cover node_modules/jasmine/bin/jasmine.js",
+    "coverage-check": "istanbul check-coverage --statements 80 --branches 80 --functions 80 --lines 80",
+    "coverage-report": "cat ./coverage/lcov.info | coveralls"
   },
   "keywords": [
     "Redis",
@@ -24,6 +27,7 @@
     "winston": "^2.3.0"
   },
   "devDependencies": {
+    "coveralls": "^2.11.15",
     "eslint": "^3.11.1",
     "eslint-config-airbnb-base": "^10.0.1",
     "eslint-plugin-import": "^2.2.0",

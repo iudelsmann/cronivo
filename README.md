@@ -1,5 +1,6 @@
 # Cronivo
 [![Build Status](https://travis-ci.org/iudelsmann/cronivo.svg)](https://travis-ci.org/iudelsmann/cronivo)
+[![Coverage Status](https://coveralls.io/repos/github/iudelsmann/cronivo/badge.svg)](https://coveralls.io/github/iudelsmann/cronivo)
 
 Synced job scheduler for node using [later](https://bunkat.github.io/later/) and [Redis](http://redis.js.org/).
 Used to synchronize scheduled job executions in cluster or multiprocess.

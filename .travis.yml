@@ -4,6 +4,7 @@ node_js:
 before_install:
   - npm install -g jasmine
   - npm install -g eslint
+  - npm install -g istanbul
 script:
   - npm test
   - npm run lint
